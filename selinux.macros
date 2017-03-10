@@ -21,6 +21,7 @@
 %_file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
 
 %_file_custom_defined_booleans /var/lib/selinux/${_policytype}/rpmbooleans.custom
+%_file_custom_defined_booleans_tmp /var/lib/selinux/${_policytype}/rpmbooleans.custom.tmp
 
 # %selinux_modules_install [-s <policytype>] module [module]...
 %selinux_modules_install("s:") \
@@ -86,36 +87,38 @@ if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
 LOCAL_MODIFICATIONS=$(semanage boolean -E) \
-if [ ! -e $_file_custom_defined_booleans ]; then
-    echo "# This file is managed by selinux.macros. Do not edit it manually" > $_file_custom_defined_booleans
-fi
-CR=$'\n'
-semanage_import=''
+if [ ! -f $_file_custom_defined_booleans ]; then \
+    echo "# This file is managed by selinux.macros. Do not edit it manually" > $_file_custom_defined_booleans \
+fi \
+semanage_import='' \
 for boolean in %* do \
-    boolean_name=${boolean%=*}
-    boolean_value=${boolean#*=}
-    if grep -q "$boolean_name=" <<<$LOCAL_MODIFICATIONS; then \
-        if grep -q $boolean_name %_file_custom_defined_booleans; then \
-            # use semanage import Luke
-            semanage_import="${semanage_import}${CR}boolean -m -$boolean_value $boolean_name" \
-            # /usr/sbin/semanage boolean -N -m -$boolean_value $boolean_name \
-            echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
-        else \
-            # FIXME: store current value to %{_file_custom_defined_booleans}
-            semanage_import="${semanage_import}${CR}boolean -m -$boolean_value $boolean_name" \
-            # /usr/sbin/semanage boolean -N -m -$boolean_value $boolean_name \
+    boolean_name=${boolean%=*} \
+    boolean_value=${boolean#*=} \
+    if grep -q $boolean_name <<<$LOCAL_MODIFICATIONS; then \
+        if grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
+            semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
+            /bin/echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
+	else \
+            _old_boolean_value=$(echo $(/usr/sbin/getsebool $boolean_name) | cut -d " " -f 3) \
+            if [ $_old_boolean_value == "off" ]; then \
+                _old_boolean_value=0 \
+            else \
+                _old_boolean_value=1 \
+            fi\
+	    if [ $boolean_value != $_old_boolean_value ]; then \
+                /bin/echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
+                semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
+            fi \
         fi \
     else \
-        semanage_import="${semanage_import}${CR}boolean -m -$boolean_value $boolean_name"
-        # /usr/sbin/semanage boolean -N -m -$boolean_value $boolean_name \
-        echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
+        semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
+        /bin/echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
     fi \
 done; \
 if /usr/sbin/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
-    echo "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}"
-    %{_sbindir}/load_policy \
+    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
 else \
-    echo "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N"
+    echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
 fi \
 %{nil}
 
@@ -126,19 +129,25 @@ _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
+semanage_import='' \
 for boolean in %* do \
-    # boolean_name=$(echo $boolean | awk -F'=' '{print $1}') \
-    boolean_name=$($boolean)
-    boolean_value=$(echo $x | awk -F'=' '{print $2}') \
-    # FIXME: use value from %{_file_custom_defined_booleans} and set it via semanage (import|boolean)
-    if grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
-       awk '/'"$boolean_name"'/ && !f{f=1; next} 1' %_file_custom_defined_booleans > /var/lib/selinux/targeted/booleans.final && mv /var/lib/selinux/targeted/booleans.final %_file_custom_defined_booleans \
-       if ! grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
-           /usr/sbin/semanage export | grep -v $boolean_name | /usr/sbin/semanage import -N \
-       fi \
+    boolean_name=${boolean%=*} \
+    if grep -q "$boolean_name=1" %_file_custom_defined_booleans; then \
+        awk '/'"$boolean_name"'/ && !f{f=1; next} 1' %_file_custom_defined_booleans > %_file_custom_defined_booleans_tmp && mv %_file_custom_defined_booleans_tmp %_file_custom_defined_booleans \
+        if ! grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
+            semanage_import="${semanage_import}\\nboolean -m -0 $boolean_name" \
+        fi \
+    fi \
+    if grep -q "$boolean_name=0" %_file_custom_defined_booleans; then \
+        awk '/'"$boolean_name"'/ && !f{f=1; next} 1' %_file_custom_defined_booleans > %_file_custom_defined_booleans_tmp && mv %_file_custom_defined_booleans_tmp %_file_custom_defined_booleans \
+        if ! grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
+            semanage_import="${semanage_import}\\nboolean -m -1 $boolean_name" \
+        fi \
     fi \
 done; \
 if /usr/sbin/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
-    %{_sbindir}/load_policy \
+    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
+else \
+    echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
 fi \
 %{nil}
