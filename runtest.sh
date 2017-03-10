@@ -161,7 +161,7 @@ rlJournalStart
         rlAssertNotGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
         rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
         rlAssertNotGrep '\(-1\|--on\) zabbix_can_network' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        bash
+        # bash
     rlPhaseEnd
 
     rlPhaseStartTest "Test uninstall once after install twice"
@@ -175,7 +175,7 @@ rlJournalStart
         rlAssertGrep 'secure_mode$' "/var/lib/selinux/targeted/rpmbooleans.custom"
         rlAssertNotGrep 'secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
         rlAssertGrep 'zabbix_can_network' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        bash
+        # bash
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
         rlRun "semanage boolean -m --off zabbix_can_network" 0 "cleanup"
