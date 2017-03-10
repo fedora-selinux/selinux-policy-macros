@@ -1,4 +1,7 @@
-# Copyright (C) 2016, 2017  Petr Lautrbach, Lukáš Vrabec, Red Hat Inc.
+# Copyright (C) 2017 Red Hat, Inc. All rights reserved.
+#
+#   Author: Petr Lautrbach <plautrba@redhat.com>
+#   Author: Lukáš Vrabec <lvrabec@redhat.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
