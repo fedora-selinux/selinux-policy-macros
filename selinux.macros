@@ -94,25 +94,20 @@ semanage_import='' \
 for boolean in %* do \
     boolean_name=${boolean%=*} \
     boolean_value=${boolean#*=} \
-    if grep -q $boolean_name <<<$LOCAL_MODIFICATIONS; then \
+    if get_boolean_value=$(grep $boolean_name <<<$LOCAL_MODIFICATIONS); then \
         if grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
             semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
-            /bin/echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
+            /bin/echo "boolean -m -$boolean_value $boolean_name" >> %_file_custom_defined_booleans \
 	else \
-            _old_boolean_value=$(echo $(/usr/sbin/getsebool $boolean_name) | cut -d " " -f 3) \
-            if [ $_old_boolean_value == "off" ]; then \
-                _old_boolean_value=0 \
-            else \
-                _old_boolean_value=1 \
-            fi\
-	    if [ $boolean_value != $_old_boolean_value ]; then \
-                /bin/echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
+            _old_boolean_value=$(echo $get_boolean_value | cut -d " " -f 3) \
+	    if [ $boolean_value != ${_old_boolean_value:1} ]; then \
+                /bin/echo "boolean -m -$boolean_value $boolean_name" >> %_file_custom_defined_booleans \
                 semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
             fi \
         fi \
     else \
         semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
-        /bin/echo $boolean_name=$boolean_value >> %_file_custom_defined_booleans \
+        /bin/echo "boolean -m -$boolean_value $boolean_name" >> %_file_custom_defined_booleans \
     fi \
 done; \
 if /usr/sbin/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
@@ -132,16 +127,15 @@ fi \
 semanage_import='' \
 for boolean in %* do \
     boolean_name=${boolean%=*} \
-    if grep -q "$boolean_name=1" %_file_custom_defined_booleans; then \
+    if grep -q "$boolean_name" %_file_custom_defined_booleans; then \
+        boolean_value=$(/bin/cat %_file_custom_defined_booleans | grep "$boolean_name" | cut -d " " -f 3) \
         awk '/'"$boolean_name"'/ && !f{f=1; next} 1' %_file_custom_defined_booleans > %_file_custom_defined_booleans_tmp && mv %_file_custom_defined_booleans_tmp %_file_custom_defined_booleans \
-        if ! grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
-            semanage_import="${semanage_import}\\nboolean -m -0 $boolean_name" \
-        fi \
-    fi \
-    if grep -q "$boolean_name=0" %_file_custom_defined_booleans; then \
-        awk '/'"$boolean_name"'/ && !f{f=1; next} 1' %_file_custom_defined_booleans > %_file_custom_defined_booleans_tmp && mv %_file_custom_defined_booleans_tmp %_file_custom_defined_booleans \
-        if ! grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
-            semanage_import="${semanage_import}\\nboolean -m -1 $boolean_name" \
+        if ! grep -q "$boolean_name" %_file_custom_defined_booleans; then \
+            if [ ${boolean_value:1} == "1" ]; then \
+                semanage_import="${semanage_import}\\nboolean -m -0 $boolean_name" \
+            else \
+                semanage_import="${semanage_import}\\nboolean -m -1 $boolean_name" \
+            fi \
         fi \
     fi \
 done; \
