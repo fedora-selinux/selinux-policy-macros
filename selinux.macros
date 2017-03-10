@@ -100,7 +100,12 @@ for boolean in %*; do \
     boolean_local_string=$(grep "$boolean_name\$" <<<$LOCAL_MODIFICATIONS) \
     if [ -n "$boolean_local_string" ]; then \
         semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
-        /bin/echo $boolean_local_string >> %_file_custom_defined_booleans \
+        boolean_customized_string=$(grep "$boolean_name\$" %_file_custom_defined_booleans | tail -n 1) \
+        if [ -n "$boolean_customized_string" ]; then \
+            /bin/echo $boolean_customized_string >> %_file_custom_defined_booleans \
+        else \
+            /bin/echo $boolean_local_string >> %_file_custom_defined_booleans \
+        fi \
     else \
         semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
         boolean_default_value=$(semanage boolean -l | grep "^$boolean_name " | sed 's/[^(]*([^,]*, *\\(on\\|off\\).*/\\1/') \
