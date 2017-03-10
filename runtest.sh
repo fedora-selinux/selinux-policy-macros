@@ -142,7 +142,113 @@ rlJournalStart
 
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
+        rlRun "semanage boolean -D" 0 "cleanup"
 
+    rlPhaseEnd
+
+# ============ Install twice, remove once ======================
+
+    rlPhaseStartTest "Test install twice on a clean system"
+        set_booleans secure_mode=1 secure_mode_insmod=1
+        set_booleans secure_mode=1 zabbix_can_network=1
+
+        rlRun "semanage boolean -E > boolean.local"
+        # test if local changes are applied
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) zabbix_can_network' "boolean.local"
+        # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
+        rlAssertNotGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) zabbix_can_network' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        bash
+    rlPhaseEnd
+
+    rlPhaseStartTest "Test uninstall once after install twice"
+        unset_booleans secure_mode=0 secure_mode_insmod=0
+
+        # test if local changes are removed
+        rlRun "semanage boolean -E > boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
+        rlAssertNotGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) zabbix_can_network' "boolean.local"
+        rlAssertGrep 'secure_mode$' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep 'zabbix_can_network' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        bash
+        rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
+        rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
+        rlRun "semanage boolean -m --off zabbix_can_network" 0 "cleanup"
+        rlRun "semanage boolean -D" 0 "cleanup"
+	rlRun "rm /var/lib/selinux/targeted/rpmbooleans.custom" 0 "cleanup"
+    rlPhaseEnd
+
+    rlPhaseStartTest "Test install twice on a system with secure_mode is already on"
+        rlRun "semanage boolean -m --on secure_mode" 0 "Setting secure_mode=on"
+
+        set_booleans secure_mode=1 secure_mode_insmod=1
+        set_booleans secure_mode=1
+
+        rlRun "semanage boolean -E > boolean.local"
+        # test if local changes are applied
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
+        # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
+        rlAssertGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        # bash
+    rlPhaseEnd
+
+    rlPhaseStartTest "Test uninstall once after install twice on a system where secure_mode was on before install"
+
+        unset_booleans secure_mode=0 secure_mode_insmod=0
+
+        # test if local changes are removed
+        rlRun "semanage boolean -E > boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
+        rlAssertGrep 'boolean -m \(-0\|--off\) secure_mode_insmod' "boolean.local"
+        rlAssertGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+
+        rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
+        rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
+        rlRun "semanage boolean -D" 0 "cleanup"
+	rlRun "rm /var/lib/selinux/targeted/rpmbooleans.custom" 0 "cleanup"
+
+    rlPhaseEnd
+
+    rlPhaseStartTest "Test install twice on a system with secure_mode was changed to off"
+        rlRun "semanage boolean -m --off secure_mode" 0 "Setting secure_mode=on"
+
+        set_booleans secure_mode=1 secure_mode_insmod=1
+        set_booleans secure_mode=1
+
+        rlRun "semanage boolean -E > boolean.local"
+        # test if local changes are applied
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
+        # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
+        rlAssertGrep '\(-0\|--off\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        # bash
+    rlPhaseEnd
+
+    rlPhaseStartTest "Test uninstall once after install twice on a system where secure_mode was off before install"
+
+        # bash
+        unset_booleans secure_mode=0 secure_mode_insmod=0
+        # bash
+
+        # test if local changes are removed
+        rlRun "semanage boolean -E > boolean.local"
+        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
+        rlAssertGrep 'boolean -m \(-0\|--off\) secure_mode_insmod' "boolean.local"
+        rlAssertGrep '\(-0\|--off\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+
+        rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
+        rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
+        rlRun "semanage boolean -D" 0 "cleanup"
     rlPhaseEnd
 
     rlPhaseStartCleanup "Cleanup"
