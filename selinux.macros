@@ -87,27 +87,21 @@ if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
 LOCAL_MODIFICATIONS=$(semanage boolean -E) \
-if [ ! -f $_file_custom_defined_booleans ]; then \
-    echo "# This file is managed by selinux.macros. Do not edit it manually" > $_file_custom_defined_booleans \
+if [ ! -f %_file_custom_defined_booleans ]; then \
+    echo "# This file is managed by selinux.macros. Do not edit it manually" > %_file_custom_defined_booleans \
 fi \
 semanage_import='' \
-for boolean in %* do \
+for boolean in %*; do \
     boolean_name=${boolean%=*} \
     boolean_value=${boolean#*=} \
-    if get_boolean_value=$(grep $boolean_name <<<$LOCAL_MODIFICATIONS); then \
-        if grep -q "$boolean_name=" %_file_custom_defined_booleans; then \
-            semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
-            /bin/echo "boolean -m -$boolean_value $boolean_name" >> %_file_custom_defined_booleans \
-	else \
-            _old_boolean_value=$(echo $get_boolean_value | cut -d " " -f 3) \
-	    if [ $boolean_value != ${_old_boolean_value:1} ]; then \
-                /bin/echo "boolean -m -$boolean_value $boolean_name" >> %_file_custom_defined_booleans \
-                semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
-            fi \
-        fi \
+    boolean_local_string=$(grep "$boolean_name\$" <<<$LOCAL_MODIFICATIONS) \
+    if [ -n "$boolean_local_string" ]; then \
+        semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
+        /bin/echo $boolean_local_string >> %_file_custom_defined_booleans \
     else \
         semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
-        /bin/echo "boolean -m -$boolean_value $boolean_name" >> %_file_custom_defined_booleans \
+        boolean_default_value=$(semanage boolean -l | grep "^$boolean_name " | sed 's/[^(]*([^,]*, *\\(on\\|off\\).*/\\1/') \
+        /bin/echo "boolean -m --$boolean_default_value $boolean_name" >> %_file_custom_defined_booleans \
     fi \
 done; \
 if /usr/sbin/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
@@ -125,17 +119,13 @@ if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
 semanage_import='' \
-for boolean in %* do \
+for boolean in %*; do \
     boolean_name=${boolean%=*} \
-    if grep -q "$boolean_name" %_file_custom_defined_booleans; then \
-        boolean_value=$(/bin/cat %_file_custom_defined_booleans | grep "$boolean_name" | cut -d " " -f 3) \
-        awk '/'"$boolean_name"'/ && !f{f=1; next} 1' %_file_custom_defined_booleans > %_file_custom_defined_booleans_tmp && mv %_file_custom_defined_booleans_tmp %_file_custom_defined_booleans \
-        if ! grep -q "$boolean_name" %_file_custom_defined_booleans; then \
-            if [ ${boolean_value:1} == "1" ]; then \
-                semanage_import="${semanage_import}\\nboolean -m -0 $boolean_name" \
-            else \
-                semanage_import="${semanage_import}\\nboolean -m -1 $boolean_name" \
-            fi \
+    boolean_customized_string=$(grep "$boolean_name\$" %_file_custom_defined_booleans | tail -n 1) \
+    if [ -n "$boolean_customized_string" ]; then \
+        awk "/$boolean_customized_string/ && !f{f=1; next} 1" %_file_custom_defined_booleans > %_file_custom_defined_booleans_tmp && mv %_file_custom_defined_booleans_tmp %_file_custom_defined_booleans \
+        if ! grep -q "$boolean_name\$" %_file_custom_defined_booleans; then \
+            semanage_import="${semanage_import}\\n${boolean_customized_string}" \
         fi \
     fi \
 done; \
