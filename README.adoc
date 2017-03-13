@@ -1,5 +1,16 @@
 = TODO =
 
+* selinux.macros: use semanage with -S <store>
+* Do not use `semanage import` - it doesn't set boolean in a system, but only on a filesystem
+
+= Tests =
+
+    $ sudo install beakerlib
+
+    $ sudo ./runtest.sh
+
+= DONE =
+
 * selinux.macros: store current value to %{_file_custom_defined_booleans}
 * selinux.macros: use value from %{_file_custom_defined_booleans} and set it via semanage (import|boolean)
 * prepare a basic testsuite with these situations
@@ -11,10 +22,4 @@
 *** with a boolean not modified before
 *** with a boolean modified before
 *** with a boolean modified before but twice - to a default value 
-* selinux.macros: use semanage with -S <store>
 
-= Tests =
-
-    $ sudo install beakerlib
-
-    $ sudo ./runtest.sh
