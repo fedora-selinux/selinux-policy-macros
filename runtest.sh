@@ -79,6 +79,9 @@ rlJournalStart
         rlAssertNotGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         rlAssertNotGrep 'secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
         # bash
+        rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
+        rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
+        rlRun "semanage boolean -D" 0 "cleanup"
     rlPhaseEnd
 
     rlPhaseStartTest "Test install on a system with secure_mode is already on"
@@ -110,6 +113,7 @@ rlJournalStart
 
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
+        rlRun "semanage boolean -D" 0 "cleanup"
 
     rlPhaseEnd
 
