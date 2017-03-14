@@ -23,8 +23,8 @@
 %_file_context_file %{_sysconfdir}/selinux/${SELINUXTYPE}/contexts/files/file_contexts
 %_file_context_file_pre %{_localstatedir}/lib/rpm-state/file_contexts.pre
 
-%_file_custom_defined_booleans /var/lib/selinux/${_policytype}/rpmbooleans.custom
-%_file_custom_defined_booleans_tmp /var/lib/selinux/${_policytype}/rpmbooleans.custom.tmp
+%_file_custom_defined_booleans %{_sharedstatedir}/selinux/${_policytype}/rpmbooleans.custom
+%_file_custom_defined_booleans_tmp %{_sharedstatedir}/selinux/${_policytype}/rpmbooleans.custom.tmp
 
 # %selinux_modules_install [-s <policytype>] module [module]...
 %selinux_modules_install("s:") \
