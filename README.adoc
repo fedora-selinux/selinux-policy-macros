@@ -1,8 +1,3 @@
-= TODO =
-
-* selinux.macros: use semanage with -S <store>
-* Do not use `semanage import` - it doesn't set boolean in a system, but only on a filesystem
-
 = Tests =
 
     $ sudo install beakerlib
