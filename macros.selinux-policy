@@ -91,7 +91,7 @@ if [ -z "${_policytype}" ]; then \
 fi \
 LOCAL_MODIFICATIONS=$(semanage boolean -E) \
 if [ ! -f %_file_custom_defined_booleans ]; then \
-    echo "# This file is managed by selinux.macros. Do not edit it manually" > %_file_custom_defined_booleans \
+    echo "# This file is managed by macros.selinux-policy. Do not edit it manually" > %_file_custom_defined_booleans \
 fi \
 semanage_import='' \
 for boolean in %*; do \

@@ -48,7 +48,7 @@ unset_booleans() {
 rlJournalStart
     rlPhaseStartSetup "Setup"
         rlRun "rlFileBackup --clean ~/.rpmmacros" 0,1 "Backing up ~/.rpmmacros"
-        rlRun "cat selinux.macros >> ~/.rpmmacros" 0 "Updating ~/.rpmmacros"
+        rlRun "cat macros.selinux-policy >> ~/.rpmmacros" 0 "Updating ~/.rpmmacros"
         rlRun "rlFileBackup --clean /var/lib/selinux/targeted/rpmbooleans.custom" 0,1 "Backing up /var/lib/selinux/targeted/rpmbooleans.custom"
         rlRun "rm /var/lib/selinux/targeted/rpmbooleans.custom" 0,1 "Updating ~/.rpmmacros"
         rlRun 'TmpDir=$(mktemp -d)' 0

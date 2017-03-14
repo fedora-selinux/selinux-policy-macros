@@ -11,8 +11,8 @@
 
 = DONE =
 
-* selinux.macros: store current value to %{_file_custom_defined_booleans}
-* selinux.macros: use value from %{_file_custom_defined_booleans} and set it via semanage (import|boolean)
+* macros.selinux-policy: store current value to %{_file_custom_defined_booleans}
+* macros.selinux-policy: use value from %{_file_custom_defined_booleans} and set it via semanage (import|boolean)
 * prepare a basic testsuite with these situations
 ** install/uninstall package
 *** with a boolean not modified before
