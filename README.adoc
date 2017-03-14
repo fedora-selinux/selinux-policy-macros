@@ -1,6 +1,6 @@
 = Tests =
 
-    $ sudo install beakerlib
+    $ sudo dnf install beakerlib
 
     $ sudo ./runtest.sh
 
