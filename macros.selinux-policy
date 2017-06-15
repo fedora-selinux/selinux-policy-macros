@@ -26,28 +26,28 @@
 %_file_custom_defined_booleans %{_sharedstatedir}/selinux/${_policytype}/rpmbooleans.custom
 %_file_custom_defined_booleans_tmp %{_sharedstatedir}/selinux/${_policytype}/rpmbooleans.custom.tmp
 
-# %selinux_modules_install [-s <policytype>] module [module]...
-%selinux_modules_install("s:") \
+# %selinux_modules_install [-s <policytype>] [-p <modulepriority>] module [module]...
+%selinux_modules_install("s:p:") \
 . /etc/selinux/config \
 _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
-%{_sbindir}/semodule -n -s ${_policytype} -X 200 -i %* \
+%{_sbindir}/semodule -n -s ${_policytype} -X %{!-p:200}%{-p*} -i %* \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
   %{_sbindir}/load_policy \
 fi \
 %{nil}
 
-# %selinux_modules_uninstall [-s <policytype>] module [module]...
-%selinux_modules_uninstall("s:") \
+# %selinux_modules_uninstall [-s <policytype>] [-p <modulepriority>] module [module]...
+%selinux_modules_uninstall("s:p:") \
 . /etc/selinux/config \
 _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
 if [ $1 -eq 0 ]; then \
-  %{_sbindir}/semodule -n -X 200 -r %* &> /dev/null || : \
+  %{_sbindir}/semodule -n -X %{!-p:200}%{-p*} -r %* &> /dev/null || : \
   if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     %{_sbindir}/load_policy \
   fi \
