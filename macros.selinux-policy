@@ -74,7 +74,7 @@ _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
-if /usr/sbin/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
+if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
    if [ -f %{_file_context_file_pre} ]; then \
      %{_sbindir}/fixfiles -C %{_file_context_file_pre} restore \
      rm -f %{_file_context_file_pre} \
@@ -112,7 +112,7 @@ for boolean in %*; do \
         /bin/echo "boolean -m --$boolean_default_value $boolean_name" >> %_file_custom_defined_booleans \
     fi \
 done; \
-if /usr/sbin/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
+if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
 else \
     echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
@@ -137,7 +137,7 @@ for boolean in %*; do \
         fi \
     fi \
 done; \
-if /usr/sbin/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
+if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
 else \
     echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
