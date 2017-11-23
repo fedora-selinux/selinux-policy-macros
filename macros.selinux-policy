@@ -26,6 +26,23 @@
 %_file_custom_defined_booleans %{_sharedstatedir}/selinux/${_policytype}/rpmbooleans.custom
 %_file_custom_defined_booleans_tmp %{_sharedstatedir}/selinux/${_policytype}/rpmbooleans.custom.tmp
 
+# %selinux_requires
+%selinux_requires \
+Requires: selinux-policy >= %{_selinux_policy_version} \
+BuildRequires: git \
+BuildRequires: pkgconfig(systemd) \
+BuildRequires: selinux-policy \
+BuildRequires: selinux-policy-devel \
+Requires(post): selinux-policy-base >= %{_selinux_policy_version} \
+Requires(post): libselinux-utils \
+Requires(post): policycoreutils \
+%if 0%{?fedora} \
+Requires(post): policycoreutils-python-utils \
+%else \
+Requires(post): policycoreutils-python \
+%endif \
+%{nil}
+
 # %selinux_modules_install [-s <policytype>] [-p <modulepriority>] module [module]...
 %selinux_modules_install("s:p:") \
 . /etc/selinux/config \
