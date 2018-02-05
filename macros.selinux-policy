@@ -108,7 +108,7 @@ if [ -z "${_policytype}" ]; then \
 fi \
 LOCAL_MODIFICATIONS=$(semanage boolean -E) \
 if [ ! -f %_file_custom_defined_booleans ]; then \
-    echo "# This file is managed by macros.selinux-policy. Do not edit it manually" > %_file_custom_defined_booleans \
+    /bin/echo "# This file is managed by macros.selinux-policy. Do not edit it manually" > %_file_custom_defined_booleans \
 fi \
 semanage_import='' \
 for boolean in %*; do \
@@ -132,7 +132,7 @@ done; \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
 else \
-    echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
+    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
 fi \
 %{nil}
 
@@ -157,6 +157,6 @@ done; \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
 else \
-    echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
+    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
 fi \
 %{nil}
