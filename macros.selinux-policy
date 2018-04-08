@@ -93,7 +93,7 @@ if [ -z "${_policytype}" ]; then \
 fi \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
    if [ -f %{_file_context_file_pre} ]; then \
-     %{_sbindir}/fixfiles -C %{_file_context_file_pre} restore \
+     %{_sbindir}/fixfiles -C %{_file_context_file_pre} restore &> /dev/null \
      rm -f %{_file_context_file_pre} \
    fi \
 fi \
