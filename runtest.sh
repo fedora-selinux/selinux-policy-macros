@@ -28,6 +28,9 @@
 # Include the BeakerLib environment
 . /usr/share/beakerlib/beakerlib.sh
 
+# Set SELinux store
+SELINUXSTOREPATH={$"rpm --eval '%_selinux_store_path'"}
+
 # Set the full test name
 TEST="IPP"
 
@@ -49,8 +52,8 @@ rlJournalStart
     rlPhaseStartSetup "Setup"
         rlRun "rlFileBackup --clean ~/.rpmmacros" 0,1 "Backing up ~/.rpmmacros"
         rlRun "cat macros.selinux-policy >> ~/.rpmmacros" 0 "Updating ~/.rpmmacros"
-        rlRun "rlFileBackup --clean /var/lib/selinux/targeted/rpmbooleans.custom" 0,1 "Backing up /var/lib/selinux/targeted/rpmbooleans.custom"
-        rlRun "rm /var/lib/selinux/targeted/rpmbooleans.custom" 0,1 "Updating ~/.rpmmacros"
+        rlRun "rlFileBackup --clean ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom" 0,1 "Backing up ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlRun "rm ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom" 0,1 "Updating ~/.rpmmacros"
         rlRun 'TmpDir=$(mktemp -d)' 0
         pushd $TmpDir
         rlRun "semanage boolean -E > boolean.import" 0 "Backup local boolean modifications"
@@ -65,8 +68,8 @@ rlJournalStart
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
-        rlAssertNotGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
     rlPhaseEnd
 
@@ -77,7 +80,7 @@ rlJournalStart
         rlRun "semanage boolean -E > boolean.local"
         rlAssertNotGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertNotGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
-        rlAssertNotGrep 'secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
@@ -94,8 +97,8 @@ rlJournalStart
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
-        rlAssertGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-1\|--on\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
     rlPhaseEnd
 
@@ -109,7 +112,7 @@ rlJournalStart
         rlRun "semanage boolean -E > boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertNotGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
-        rlAssertNotGrep 'secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
 
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
@@ -127,8 +130,8 @@ rlJournalStart
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
-        rlAssertGrep '\(-0\|--off\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
     rlPhaseEnd
 
@@ -142,7 +145,7 @@ rlJournalStart
         rlRun "semanage boolean -E > boolean.local"
         rlAssertGrep 'boolean -m \(-0\|--off\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-0\|--off\) secure_mode_insmod' "boolean.local"
-        rlAssertNotGrep 'secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
 
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
@@ -162,9 +165,9 @@ rlJournalStart
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) zabbix_can_network' "boolean.local"
         # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
-        rlAssertNotGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertNotGrep '\(-1\|--on\) zabbix_can_network' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertNotGrep '\(-1\|--on\) zabbix_can_network' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
     rlPhaseEnd
 
@@ -176,15 +179,15 @@ rlJournalStart
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertNotGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) zabbix_can_network' "boolean.local"
-        rlAssertGrep 'secure_mode$' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertNotGrep 'secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertGrep 'zabbix_can_network' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep 'secure_mode$' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertGrep 'zabbix_can_network' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
         rlRun "semanage boolean -m --off zabbix_can_network" 0 "cleanup"
         rlRun "semanage boolean -D" 0 "cleanup"
-	rlRun "rm /var/lib/selinux/targeted/rpmbooleans.custom" 0 "cleanup"
+	rlRun "rm ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom" 0 "cleanup"
     rlPhaseEnd
 
     rlPhaseStartTest "Test install twice on a system with secure_mode is already on"
@@ -198,8 +201,8 @@ rlJournalStart
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
-        rlAssertGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-1\|--on\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
     rlPhaseEnd
 
@@ -211,13 +214,13 @@ rlJournalStart
         rlRun "semanage boolean -E > boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-0\|--off\) secure_mode_insmod' "boolean.local"
-        rlAssertGrep '\(-1\|--on\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertNotGrep 'secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-1\|--on\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
 
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
         rlRun "semanage boolean -D" 0 "cleanup"
-	rlRun "rm /var/lib/selinux/targeted/rpmbooleans.custom" 0 "cleanup"
+	rlRun "rm ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom" 0 "cleanup"
 
     rlPhaseEnd
 
@@ -232,8 +235,8 @@ rlJournalStart
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
-        rlAssertGrep '\(-0\|--off\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
     rlPhaseEnd
 
@@ -247,8 +250,8 @@ rlJournalStart
         rlRun "semanage boolean -E > boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-0\|--off\) secure_mode_insmod' "boolean.local"
-        rlAssertGrep '\(-0\|--off\) secure_mode' "/var/lib/selinux/targeted/rpmbooleans.custom"
-        rlAssertNotGrep 'secure_mode_insmod' "/var/lib/selinux/targeted/rpmbooleans.custom"
+        rlAssertGrep '\(-0\|--off\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
+        rlAssertNotGrep 'secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
 
         rlRun "semanage boolean -m --off secure_mode" 0 "cleanup"
         rlRun "semanage boolean -m --off secure_mode_insmod" 0 "cleanup"
