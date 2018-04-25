@@ -64,7 +64,7 @@ if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
 if [ $1 -eq 0 ]; then \
-  %{_sbindir}/semodule -n -X %{!-p:200}%{-p*} -r %* &> /dev/null || : \
+  %{_sbindir}/semodule -n -X %{!-p:200}%{-p*} -s ${_policytype} -r %* &> /dev/null || : \
   if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     %{_sbindir}/load_policy \
   fi \
