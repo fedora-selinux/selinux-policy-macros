@@ -29,7 +29,7 @@
 . /usr/share/beakerlib/beakerlib.sh
 
 # Set SELinux store
-SELINUXSTOREPATH={$"rpm --eval '%_selinux_store_path'"}
+SELINUXSTOREPATH=$(rpm --eval '%_selinux_store_path')
 
 # Set the full test name
 TEST="IPP"
