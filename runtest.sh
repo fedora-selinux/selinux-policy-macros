@@ -29,7 +29,11 @@
 . /usr/share/beakerlib/beakerlib.sh
 
 # Set SELinux store
-SELINUXSTOREPATH=$(rpm --eval '%_selinux_store_path')
+if rlIsRHEL "<=7" || rlIsCentOS "<=7"; then
+    SELINUXSTOREPATH=/etc/selinux
+else
+    SELINUXSTOREPATH=/var/lib/selinux
+fi
 
 # Set the full test name
 TEST="IPP"
@@ -51,7 +55,7 @@ unset_booleans() {
 rlJournalStart
     rlPhaseStartSetup "Setup"
         rlRun "rlFileBackup --clean ~/.rpmmacros" 0,1 "Backing up ~/.rpmmacros"
-        rlRun "cat macros.selinux-policy >> ~/.rpmmacros" 0 "Updating ~/.rpmmacros"
+        rlRun "sed 's|SELINUXSTOREPATH|$SELINUXSTOREPATH|' macros.selinux-policy >>  ~/.rpmmacros" 0 "Updating ~/.rpmmacros"
         rlRun "rlFileBackup --clean ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom" 0,1 "Backing up ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         rlRun "rm ${SELINUXSTOREPATH}/targeted/rpmbooleans.custom" 0,1 "Updating ~/.rpmmacros"
         rlRun 'TmpDir=$(mktemp -d)' 0
