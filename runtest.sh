@@ -165,11 +165,9 @@ rlJournalStart
 
         rlRun "semanage boolean -E > boolean.local"
         # test if local changes are applied
-        rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) secure_mode_insmod' "boolean.local"
         rlAssertGrep 'boolean -m \(-1\|--on\) zabbix_can_network' "boolean.local"
         # check the content of /var/lib/selinux/targeted/rpmbooleans.custom, should be almost empty
-        rlAssertNotGrep '\(-1\|--on\) secure_mode' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         rlAssertNotGrep '\(-1\|--on\) secure_mode_insmod' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         rlAssertNotGrep '\(-1\|--on\) zabbix_can_network' "${SELINUXSTOREPATH}/targeted/rpmbooleans.custom"
         # bash
