@@ -38,7 +38,7 @@ BuildRequires: selinux-policy-devel \
 Requires(post): selinux-policy-base >= %{_selinux_policy_version} \
 Requires(post): libselinux-utils \
 Requires(post): policycoreutils \
-%if 0%{?fedora} \
+%if 0%{?fedora} || 0%{?rhel} >= 8\
 Requires(post): policycoreutils-python-utils \
 %else \
 Requires(post): policycoreutils-python \
