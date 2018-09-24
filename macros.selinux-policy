@@ -134,7 +134,7 @@ done; \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
 else \
-    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
+    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" -N \
 fi \
 %{nil}
 
@@ -159,6 +159,6 @@ done; \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
 else \
-    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype} -N" \
+    /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" -N \
 fi \
 %{nil}
