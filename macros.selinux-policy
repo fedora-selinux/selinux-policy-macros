@@ -133,7 +133,7 @@ for boolean in %*; do \
 done; \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
-else \
+elif test -d /usr/share/selinux/"${_policytype}"/base.lst; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" -N \
 fi \
 %{nil}
@@ -158,7 +158,7 @@ for boolean in %*; do \
 done; \
 if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
-else \
+elif test -d /usr/share/selinux/"${_policytype}"/base.lst; then \
     /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" -N \
 fi \
 %{nil}
