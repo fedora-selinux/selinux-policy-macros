@@ -76,13 +76,15 @@ fi \
 
 # %selinux_relabel_pre [-s <policytype>]
 %selinux_relabel_pre("s:") \
-. /etc/selinux/config \
-_policytype=%{-s*} \
-if [ -z "${_policytype}" ]; then \
-  _policytype="targeted" \
-fi \
-if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
-  [ -f %{_file_context_file_pre} ] || cp -f %{_file_context_file} %{_file_context_file_pre} \
+if %{_sbindir}/selinuxenabled; then \
+  . /etc/selinux/config \
+  _policytype=%{-s*} \
+  if [ -z "${_policytype}" ]; then \
+    _policytype="targeted" \
+  fi \
+  if [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
+    [ -f %{_file_context_file_pre} ] || cp -f %{_file_context_file} %{_file_context_file_pre} \
+  fi \
 fi \
 %{nil}
 
