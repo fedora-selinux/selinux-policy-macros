@@ -48,7 +48,9 @@ Requires(post): policycoreutils-python \
 
 # %selinux_modules_install [-s <policytype>] [-p <modulepriority>] module [module]...
 %selinux_modules_install("s:p:") \
-. /etc/selinux/config \
+if [ -e /etc/selinux/config ]; then \
+  . /etc/selinux/config \
+fi \
 _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
@@ -61,7 +63,9 @@ fi \
 
 # %selinux_modules_uninstall [-s <policytype>] [-p <modulepriority>] module [module]...
 %selinux_modules_uninstall("s:p:") \
-. /etc/selinux/config \
+if [ -e /etc/selinux/config ]; then \
+  . /etc/selinux/config \
+fi \
 _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
@@ -77,7 +81,9 @@ fi \
 # %selinux_relabel_pre [-s <policytype>]
 %selinux_relabel_pre("s:") \
 if %{_sbindir}/selinuxenabled; then \
-  . /etc/selinux/config \
+  if [ -e /etc/selinux/config ]; then \
+    . /etc/selinux/config \
+  fi \
   _policytype=%{-s*} \
   if [ -z "${_policytype}" ]; then \
     _policytype="targeted" \
@@ -91,7 +97,9 @@ fi \
 
 # %selinux_relabel_post [-s <policytype>]
 %selinux_relabel_post("s:") \
-. /etc/selinux/config \
+if [ -e /etc/selinux/config ]; then \
+  . /etc/selinux/config \
+fi \
 _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
@@ -106,7 +114,9 @@ fi \
 
 # %selinux_set_booleans [-s <policytype>] boolean [boolean]...
 %selinux_set_booleans("s:") \
-. /etc/selinux/config \
+if [ -e /etc/selinux/config ]; then \
+  . /etc/selinux/config \
+fi \
 _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
@@ -145,7 +155,9 @@ fi \
 
 # %selinux_unset_booleans [-s <policytype>] boolean [boolean]...
 %selinux_unset_booleans("s:") \
-. /etc/selinux/config \
+if [ -e /etc/selinux/config ]; then \
+  . /etc/selinux/config \
+fi \
 _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
