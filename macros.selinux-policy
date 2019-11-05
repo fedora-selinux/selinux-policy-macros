@@ -32,7 +32,6 @@
 # %selinux_requires
 %selinux_requires \
 Requires: selinux-policy >= %{_selinux_policy_version} \
-BuildRequires: git \
 BuildRequires: pkgconfig(systemd) \
 BuildRequires: selinux-policy \
 BuildRequires: selinux-policy-devel \
