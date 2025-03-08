@@ -55,8 +55,10 @@ if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
 if [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
-  %{_sbindir}/semodule -n -s ${_policytype} -X %{!-p:200}%{-p*} -i %* || : \
-  %{_sbindir}/selinuxenabled && %{_sbindir}/load_policy || : \
+  rm -rf %{_sharedstatedir}/selinux/${_policytype}/active/modules/400/extra_varrun || : \
+  semodule -n -s ${_policytype} -X %{!-p:200}%{-p*} -i %* || : \
+  selinuxenabled && load_policy || : \
+  %{_libexecdir}/selinux/varrun-convert.sh ${_policytype} || : \
 fi \
 %{nil}
 
@@ -71,15 +73,17 @@ if [ -z "${_policytype}" ]; then \
 fi \
 if [ $1 -eq 0 ]; then \
   if [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
-    %{_sbindir}/semodule -n -X %{!-p:200}%{-p*} -s ${_policytype} -r %* &> /dev/null || : \
-    %{_sbindir}/selinuxenabled && %{_sbindir}/load_policy || : \
+    rm -rf %{_sharedstatedir}/selinux/${_policytype}/active/modules/400/extra_varrun || : \
+    semodule -n -X %{!-p:200}%{-p*} -s ${_policytype} -r %* &> /dev/null || : \
+    selinuxenabled && load_policy || : \
+    %{_libexecdir}/selinux/varrun-convert.sh ${_policytype} || : \
   fi \
 fi \
 %{nil}
 
 # %selinux_relabel_pre [-s <policytype>]
 %selinux_relabel_pre("s:") \
-if %{_sbindir}/selinuxenabled; then \
+if selinuxenabled; then \
   if [ -e /etc/selinux/config ]; then \
     . /etc/selinux/config \
   fi \
@@ -103,9 +107,9 @@ _policytype=%{-s*} \
 if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
-if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
+if selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
    if [ -f %{_file_context_file_pre} ]; then \
-     %{_sbindir}/fixfiles -C %{_file_context_file_pre} restore &> /dev/null \
+     fixfiles -C %{_file_context_file_pre} restore &> /dev/null \
      rm -f %{_file_context_file_pre} \
    fi \
 fi \
@@ -121,9 +125,9 @@ if [ -z "${_policytype}" ]; then \
   _policytype="targeted" \
 fi \
 if [ -d "%{_selinux_store_policy_path}" ]; then \
-  LOCAL_MODIFICATIONS=$(%{_sbindir}/semanage boolean -E) \
+  LOCAL_MODIFICATIONS=$(semanage boolean -E) \
   if [ ! -f %_file_custom_defined_booleans ]; then \
-      /bin/echo "# This file is managed by macros.selinux-policy. Do not edit it manually" > %_file_custom_defined_booleans \
+      echo "# This file is managed by macros.selinux-policy. Do not edit it manually" > %_file_custom_defined_booleans \
   fi \
   semanage_import='' \
   for boolean in %*; do \
@@ -134,20 +138,20 @@ if [ -d "%{_selinux_store_policy_path}" ]; then \
           semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
           boolean_customized_string=$(grep "$boolean_name\$" %_file_custom_defined_booleans | tail -n 1) \
           if [ -n "$boolean_customized_string" ]; then \
-              /bin/echo $boolean_customized_string >> %_file_custom_defined_booleans \
+              echo $boolean_customized_string >> %_file_custom_defined_booleans \
           else \
-              /bin/echo $boolean_local_string >> %_file_custom_defined_booleans \
+              echo $boolean_local_string >> %_file_custom_defined_booleans \
           fi \
       else \
           semanage_import="${semanage_import}\\nboolean -m -$boolean_value $boolean_name" \
-          boolean_default_value=$(LC_ALL=C %{_sbindir}/semanage boolean -l | grep "^$boolean_name " | sed 's/[^(]*([^,]*, *\\(on\\|off\\).*/\\1/') \
-          /bin/echo "boolean -m --$boolean_default_value $boolean_name" >> %_file_custom_defined_booleans \
+          boolean_default_value=$(LC_ALL=C semanage boolean -l | grep "^$boolean_name " | sed 's/[^(]*([^,]*, *\\(on\\|off\\).*/\\1/') \
+          echo "boolean -m --$boolean_default_value $boolean_name" >> %_file_custom_defined_booleans \
       fi \
   done; \
-  if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
-      /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
+  if selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
+      echo -e "$semanage_import" | semanage import -S "${_policytype}" \
   elif test -d /usr/share/selinux/"${_policytype}"/base.lst; then \
-      /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" -N \
+      echo -e "$semanage_import" | semanage import -S "${_policytype}" -N \
   fi \
 fi \
 %{nil}
@@ -173,10 +177,10 @@ if [ -d "%{_selinux_store_policy_path}" ]; then \
           fi \
       fi \
   done; \
-  if %{_sbindir}/selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
-      /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" \
+  if selinuxenabled && [ "${SELINUXTYPE}" = "${_policytype}" ]; then \
+      echo -e "$semanage_import" | semanage import -S "${_policytype}" \
   elif test -d /usr/share/selinux/"${_policytype}"/base.lst; then \
-      /bin/echo -e "$semanage_import" | %{_sbindir}/semanage import -S "${_policytype}" -N \
+      echo -e "$semanage_import" | semanage import -S "${_policytype}" -N \
   fi \
 fi \
 %{nil}
