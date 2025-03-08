@@ -1,3 +1,14 @@
+= Obsoleted =
+
+This repository is obsoleted and is not used anymore.
+
+Up to date macros.selinux-policy files are available in Fedora dist-git
+and CentOS repository
+
+* https://src.fedoraproject.org/rpms/selinux-policy/blob/rawhide/f/rpm.macros
+
+* https://gitlab.com/redhat/centos-stream/rpms/selinux-policy/-/blob/c10s/rpm.macros?ref_type=heads
+
 = Tests =
 
     $ sudo dnf install beakerlib
